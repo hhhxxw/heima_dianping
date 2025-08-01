@@ -4,11 +4,13 @@ import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.dto.LoginFormDTO;
 import com.hmdp.dto.Result;
+import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.User;
 import com.hmdp.mapper.UserMapper;
 import com.hmdp.service.IUserService;
 import com.hmdp.utils.RegexUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
@@ -61,6 +63,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
         // 验证校验码
         Object cacheCode = session.getAttribute("code");
+        // 从前端获取到的code
         String code = loginForm.getCode();
         if(cacheCode == null || !cacheCode.toString().equals(code)){
             //3.不一致，报错
@@ -75,15 +78,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             user =  createUserWithPhone(phone);
         }
         //7.保存用户信息到session中
-        session.setAttribute("user",user);
+        session.setAttribute("user", user);
 
         return Result.ok();
     }
+
     private User createUserWithPhone(String phone){
         User user = new User();
         user.setPhone(phone);
+        // 随机创建一个昵称
         user.setNickName(USER_NICK_NAME_PREFIX + RandomUtil.randomString(10));
         save(user);
-        return null;
+        return user;
     }
 }
