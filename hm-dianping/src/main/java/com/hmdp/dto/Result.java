@@ -18,9 +18,11 @@ public class Result {
     public static Result ok(){
         return new Result(true, null, null, null);
     }
+    
     public static Result ok(Object data){
         return new Result(true, null, data, null);
     }
+
     public static Result ok(List<?> data, Long total){
         return new Result(true, null, data, total);
     }
