@@ -1,12 +1,6 @@
 # ⭐ 黑马点评 (Heima-Dianping)
 
-[![License: MIT](D:\code\redis_study\heima_dianping\Redis实战篇.assets\License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Java](D:\code\redis_study\heima_dianping\Redis实战篇.assets\Java-1.8+-orange.svg)](https://www.java.com)
-[![Spring Boot](D:\code\redis_study\heima_dianping\Redis实战篇.assets\Spring Boot-2.7.x-brightgreen.svg)](https://spring.io/projects/spring-boot)
-[![Vue.js](D:\code\redis_study\heima_dianping\Redis实战篇.assets\Vue.js-2.x-green.svg)](https://vuejs.org/)
-[![Redis](D:\code\redis_study\heima_dianping\Redis实战篇.assets\Redis-6.x-red.svg)](https://redis.io/)
-
-一份“黑马点评”项目的完整实现，这是一个仿照“大众点评”的业务场景，旨在通过实战深入学习和应用Java后端及分布式开发的各项核心技术。该项目覆盖了从基础功能到高并发、分布式系统设计的全过程。
+这是一个仿照“大众点评”的业务场景，旨在通过实战深入学习和应用Java后端及分布式开发的各项核心技术。该项目覆盖了从基础功能到高并发、分布式系统设计的全过程。
 
 ---
 
