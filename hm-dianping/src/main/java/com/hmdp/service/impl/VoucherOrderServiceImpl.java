@@ -9,6 +9,7 @@ import com.hmdp.service.IVoucherOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.utils.RedisIdWorker;
 import com.hmdp.utils.UserHolder;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +25,6 @@ import java.time.LocalDateTime;
  * @since 2021-12-22
  */
 @Service
-@Transactional
 public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, VoucherOrder> implements IVoucherOrderService {
     // 利用seckillVoucherService根据id进行查询
     @Resource
@@ -50,32 +50,51 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         if(voucher.getStock() < 1){
             return Result.fail("库存不足");
         }
-        // 5. 扣减库存
-        boolean success = seckillVoucherService.update()
-                // setSql方法可以自定义SQL语句，实现 "SET stock = stock - 1"
-                .setSql("stock = stock - 1")
-                // eq方法是添加WHERE条件，即 "voucher_id = ?"
-                .eq("voucher_id", voucherId)
-                // gt方法也是添加WHERE条件，即 "AND stock > ?"
-                .gt("stock", 0)
-                .update();
-        if(!success){
-            // 扣减失败
-            return Result.fail("库存不足");
-        }
-
-        // 6. 创建订单
-        VoucherOrder voucherOrder = new VoucherOrder();
-        // 6.1 订单ID
-        long orderId = redisIdWorker.nextId("order");
-        voucherOrder.setId(orderId);
-        // 6.2 用户ID
         Long userId = UserHolder.getUser().getId();
-        voucherOrder.setUserId(userId);
-        // 6.3 代金卷ID
-        voucherOrder.setVoucherId(voucherId);
-        save(voucherOrder);
-        // 7. 返回订单ID
-        return Result.ok(orderId);
+        synchronized (userId.toString().intern()) {
+            // 获取代理对象（事务）
+            IVoucherOrderService proxy = (IVoucherOrderService)AopContext.currentProxy();
+            return proxy.createVoucherOrder(voucherId);
+        }
+    }
+    @Transactional
+    public  Result createVoucherOrder(Long voucherId) {
+        // 5. 一人一单
+        Long userId = UserHolder.getUser().getId();
+
+
+            // 5.1 查询订单
+            int count = query().eq("user_id", userId).eq("voucher_id", voucherId).count();
+
+            // 5.2 判断是否存在
+            if(count > 0){
+                // 用户已经购买过了
+                return Result.fail("用户已经购买过一次了");
+            }
+            // 6. 扣减库存
+            boolean success = seckillVoucherService.update()
+                    // setSql方法可以自定义SQL语句，实现 "SET stock = stock - 1"
+                    .setSql("stock = stock - 1")
+                    // eq方法是添加WHERE条件，即 "voucher_id = ?"
+                    .eq("voucher_id", voucherId)
+                    // gt方法也是添加WHERE条件，即 "AND stock > ?"
+                    .gt("stock", 0)
+                    .update();
+            if(!success){
+                // 扣减失败
+                return Result.fail("库存不足");
+            }
+            // 7. 创建订单
+            VoucherOrder voucherOrder = new VoucherOrder();
+            // 7.1 订单ID
+            long orderId = redisIdWorker.nextId("order");
+            voucherOrder.setId(orderId);
+            voucherOrder.setUserId(userId);
+            // 7.3 代金卷ID
+            voucherOrder.setVoucherId(voucherId);
+            save(voucherOrder);
+            // 7. 返回订单ID
+            return Result.ok(orderId);
+
     }
 }
