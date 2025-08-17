@@ -1,5 +1,6 @@
 package com.hmdp.service.impl;
 
+import com.hmdp.config.RedissonConfig;
 import com.hmdp.dto.Result;
 import com.hmdp.entity.SeckillVoucher;
 import com.hmdp.entity.VoucherOrder;
@@ -8,8 +9,9 @@ import com.hmdp.service.ISeckillVoucherService;
 import com.hmdp.service.IVoucherOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.utils.RedisIdWorker;
-import com.hmdp.utils.SimpleRedisLock;
 import com.hmdp.utils.UserHolder;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -38,6 +40,9 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
+    @Resource
+    private RedissonClient redissonClient;
+
     @Override
     public Result seckillVoucher(Long voucherId) {
         // 1. 查询优惠卷信息
@@ -57,9 +62,11 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         Long userId = UserHolder.getUser().getId();
         synchronized (userId.toString().intern()) {
             // 创建对象
-            SimpleRedisLock lock = new SimpleRedisLock("order:" + userId, stringRedisTemplate);
+            // SimpleRedisLock lock = new SimpleRedisLock("order:" + userId, stringRedisTemplate);
+
+            RLock lock = redissonClient.getLock("lock:order:" + userId);
             // 获取锁
-            boolean isLock = lock.tryLock(1200);
+            boolean isLock = lock.tryLock();
             if(!isLock){
                 // 获取锁失败，返回错误信息或重试
                 return Result.fail("不允许重复下下单");
@@ -114,6 +121,6 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             save(voucherOrder);
             // 7. 返回订单ID
             return Result.ok(orderId);
-
     }
+
 }
