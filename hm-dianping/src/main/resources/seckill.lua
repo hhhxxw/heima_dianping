@@ -6,6 +6,8 @@ local voucherId = ARGV[1]
 -- 用户ID
 local userId = ARGV[2]
 
+local orderId = ARGV[3]
+
 -- 2. 数据Key
 -- 库存Key
 local stockKey = 'seckill:stock:' .. voucherId
@@ -29,6 +31,9 @@ end
 redis.call('decr', stockKey)
 -- 3.4. 将用户ID存入Set集合 (sadd)
 redis.call('sadd', orderKey, userId)
+
+-- 3.5 发送消息到队列当中
+redis.call('xadd', 'stream.orders', '*', 'userId',userId, 'voucherId', voucherId, 'id', orderId)
 
 -- 下单成功，返回0
 return 0
