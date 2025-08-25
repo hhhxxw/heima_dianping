@@ -48,6 +48,7 @@ public class Blog implements Serializable {
     /**
      * 用户姓名
      */
+    // exist = false 标识的是这个字段不再这张表里面
     @TableField(exist = false)
     private String name;
     /**

@@ -126,6 +126,7 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
                     // 这里是什么意思？
                     log.error("处理订单异常", e);
                     handlePendingList();
+
                 }
             }
         }
