@@ -51,6 +51,8 @@ public class Blog implements Serializable {
     // exist = false 标识的是这个字段不再这张表里面
     @TableField(exist = false)
     private String name;
+
+
     /**
      * 是否点赞过了
      */
